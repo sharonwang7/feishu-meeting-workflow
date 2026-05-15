@@ -1,0 +1,116 @@
+# ============================================================
+# 飞书会议总结 Skill - 配置示例文件
+# ============================================================
+# 复制此文件为 config.yaml（或 config.json），并填写实际值
+# 敏感信息（app_secret）建议通过环境变量注入，不提交到 Git
+# ============================================================
+
+# ---------- 飞书应用配置 ----------
+feishu:
+  # 飞书应用 App ID（在飞书开放平台获取）
+  app_id: ""
+  # 飞书应用 App Secret
+  app_secret: ""
+
+# ---------- 用户角色配置 ----------
+roles:
+  # 决策者 / 审批人 open_id
+  # 发送战略决策、风险台账预览
+  # 在飞书中，点击用户头像 → 复制 open_id
+  decision_maker_open_id: ""
+
+  # 日程组织者 open_id（用于权限过滤）
+  # 只处理此人创建的日程/妙记
+  # 通常与 decision_maker_open_id 相同
+  organizer_open_id: ""
+
+# ---------- LLM API 配置 ----------
+llm:
+  # LLM API 地址
+  # 支持格式：
+  #   - "localhost:8000"
+  #   - "http://localhost:8000"
+  #   - "https://your-llm-server.com"
+  endpoint: "localhost:8000"
+
+  # LLM 模型名称（需与 API 服务支持的模型匹配）
+  model: "qwen3.5-397b"
+
+  # 最大输出 token 数
+  max_tokens: 4096
+
+  # 温度参数（越低越确定性，越高越随机）
+  # 推荐：0.1（提取任务）/ 0.3（创意生成）
+  temperature: 0.1
+
+# ---------- 多维表格配置 ----------
+tables:
+  # 会议任务管理表 base token
+  # 获取方式：打开多维表格 → 复制 URL 中的 app token 部分
+  # 例：https://example.feishu.cn/base/ABC123xyz → base token 为 ABC123xyz
+  task_management_base_token: ""
+
+  # 任务管理表 table ID
+  # 获取方式：打开多维表格 → 复制 URL 中的 tableId 部分
+  task_management_table_id: ""
+
+  # 会议记录表 base token（可选）
+  # 用于归档逐字稿和汇总文档链接
+  meeting_records_base_token: ""
+
+  # 会议记录表 table ID（可选）
+  meeting_records_table_id: ""
+
+# ---------- Cron Job 配置 ----------
+cron:
+  # 逾期提醒 Cron Job ID
+  # 在 OpenClaw / 定时任务平台中创建后填入
+  overdue_reminder_job_id: ""
+
+# ---------- 妙记配置 ----------
+minutes:
+  # 妙记检查窗口（分钟）
+  # 向前检查多少分钟内的妙记
+  # 默认 60 分钟（1 小时）
+  check_window_minutes: 60
+
+  # 妙记测试 token（仅用于测试）
+  # 从飞书妙记 URL 中获取
+  # 例：https://xxx.feishu.cn/minutes/abc123 → token 为 abc123
+  test_minute_token: ""
+
+# ---------- 自动化配置 ----------
+automation:
+  # 到期前多少天发送提醒
+  # 例：3 表示任务到期前 3 天自动提醒负责人
+  reminder_days_before: 3
+
+# ---------- 文件路径配置 ----------
+paths:
+  # 去重记录文件路径（相对于 skill/lib/ 目录）
+  # 建议使用 ../../memory/ 格式，指向 workspace memory 目录
+  processed_file: "../../memory/processed-meetings-summary.json"
+
+  # 结构化缓存文件路径（供下次跨会议关联）
+  cache_file: "../../memory/meeting-summary-cache.json"
+
+  # lark-cli 妙记输出目录（相对于执行目录）
+  output_dir: "./minutes"
+
+  # 会前文档保存目录（相对于 skill/lib/ 目录）
+  pre_meeting_docs_dir: "../../memory/pre-meeting-docs"
+
+# ============================================================
+# 环境变量覆盖（可选）
+# ============================================================
+# 除了 config.yaml 外，也可通过环境变量覆盖配置：
+#
+# FEISHU_APP_ID          → feishu.app_id
+# FEISHU_APP_SECRET      → feishu.app_secret
+# LLM_ENDPOINT           → llm.endpoint
+# LLM_MODEL              → llm.model
+# DECISION_MAKER_OPEN_ID → roles.decision_maker_open_id
+# ORGANIZER_OPEN_ID     → roles.organizer_open_id
+#
+# 环境变量优先级高于 config.yaml
+# ============================================================

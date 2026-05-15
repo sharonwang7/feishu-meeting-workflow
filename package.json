@@ -1,0 +1,43 @@
+{
+  "name": "feishu-meeting-summary",
+  "version": "3.4.0",
+  "description": "飞书通用会议总结 Skill - 基于 V3.0 设计框架，LLM 智能价值提取 + 任务闭环",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test-flow.js",
+    "test:minute": "node test/test-minute.js",
+    "test:extract": "node test/test-extract.js",
+    "test:workflow": "node test/test-workflow.js",
+    "lint": "eslint . --ext .js"
+  },
+  "keywords": [
+    "feishu",
+    "meeting",
+    "summary",
+    "ai",
+    "llm",
+    "task-management",
+    "workflow"
+  ],
+  "author": "[YOUR_NAME]",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/feishu-meeting-summary.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/feishu-meeting-summary/issues"
+  },
+  "homepage": "https://github.com/your-username/feishu-meeting-summary#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}
