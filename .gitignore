@@ -38,7 +38,6 @@ search_*.py
 *.py
 stop
 skills-lock.json
-package-lock.json
 permission-payload.json
 
 # 其他项目文件
