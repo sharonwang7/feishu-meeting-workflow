@@ -53,9 +53,9 @@ const CONFIG = {
   // 多维表格
   baseToken: getConfig(config, 'tables.task_management_base_token', ''),
   taskTableId: getConfig(config, 'tables.task_management_table_id', ''),
-  // LLM API 配置
-  llmEndpoint: getConfig(config, 'llm.endpoint', 'localhost:8000'),
-  llmModel: getConfig(config, 'llm.model', 'qwen3.5-397b'),
+  // LLM API 配置（从本地配置文件读取，无默认值）
+  llmEndpoint: getConfig(config, 'llm.endpoint', ''),
+  llmModel: getConfig(config, 'llm.model', ''),
   llmMaxTokens: getConfig(config, 'llm.max_tokens', 4096),
   llmTemperature: getConfig(config, 'llm.temperature', 0.1),
   // Cron Job ID

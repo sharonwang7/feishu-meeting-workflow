@@ -94,15 +94,25 @@ node index.js
 
 ## 🔧 配置说明
 
+### 核心设计理念
+
+**本 Skill 采用配置外部化设计**，所有敏感信息和本地化配置均从 `config.json` 或 `.env` 文件读取，**代码中无任何硬编码**。这使得：
+
+1. ✅ **安全**：敏感信息不进入代码库
+2. ✅ **灵活**：不同用户可使用各自的飞书应用、LLM 服务
+3. ✅ **易部署**：复制示例配置文件，填写自己的值即可
+
 ### 必填配置项
 
 | 配置项 | 说明 | 获取方式 |
 |--------|------|---------|
 | `FEISHU_APP_ID` | 飞书应用 App ID | 飞书开放平台 → 企业自建应用 → 凭证管理 |
 | `FEISHU_APP_SECRET` | 飞书应用 App Secret | 同上 |
-| `DECISION_MAKER_OPEN_ID` | 决策者 open_id（示例中称为"王爷"） | 飞书 → 点击用户头像 → 复制 open_id |
-| `LLM_ENDPOINT` | LLM API 地址 | 本地部署：`localhost:8000` |
-| `LLM_MODEL` | LLM 模型名称 | 根据实际部署的模型填写 |
+| `DECISION_MAKER_OPEN_ID` | 决策者 open_id（发送预览、接收战略决策） | 飞书 → 点击用户头像 → 复制 open_id |
+| `LLM_ENDPOINT` | **LLM API 地址**（从本地配置文件读取） | 本地部署：`localhost:8000` 或远程 API |
+| `LLM_MODEL` | **LLM 模型名称**（从本地配置文件读取） | 根据实际部署的模型填写 |
+
+> 💡 **LLM 配置说明**：`LLM_ENDPOINT` 和 `LLM_MODEL` 从 `config.json` 或 `.env` 读取，**代码中无默认值**。请根据你的本地 LLM 服务或远程 API 填写。
 
 ### 可选配置项
 
@@ -119,7 +129,53 @@ node index.js
 ### 配置文件优先级
 
 ```
-环境变量 > config.yaml / config.json > 默认值
+环境变量 > config.yaml / config.json > 无默认值（必须填写）
+```
+
+### 配置步骤
+
+1. **复制示例配置文件**
+```bash
+cp config.json config.json  # 或直接编辑 config.json
+cp .env.example .env        # 如使用环境变量方式
+```
+
+2. **编辑配置文件**
+
+**方式一：config.json（推荐）**
+```json
+{
+  "feishu": {
+    "app_id": "cli_xxx",
+    "app_secret": "xxx"
+  },
+  "roles": {
+    "decision_maker_open_id": "ou_xxx",
+    "organizer_open_id": "ou_xxx"
+  },
+  "llm": {
+    "endpoint": "localhost:8000",  // 你的 LLM 服务地址
+    "model": "qwen3.5-397b"        // 你的模型名称
+  },
+  "tables": {
+    "task_management_base_token": "xxx",
+    "task_management_table_id": "tblxxx"
+  }
+}
+```
+
+**方式二：.env 环境变量**
+```bash
+FEISHU_APP_ID=cli_xxx
+FEISHU_APP_SECRET=xxx
+DECISION_MAKER_OPEN_ID=ou_xxx
+LLM_ENDPOINT=localhost:8000
+LLM_MODEL=qwen3.5-397b
+```
+
+3. **验证配置**
+```bash
+node -e "const config = require('./lib/config-loader').loadConfig(); console.log(JSON.stringify(config, null, 2))"
 ```
 
 ---
