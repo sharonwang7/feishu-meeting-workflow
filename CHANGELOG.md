@@ -4,10 +4,28 @@
 
 ---
 
+## [3.6.0] - 2026-05-18
+
+### 📚 文档大改进
+- **SKILL.md** 新增「首次安装后必做」章节：明确 4 步流程（跑 setup / 开权限 / 首次验证 / 配 Cron）
+- **README.md** 配置指引重写：添加飞书开放平台直达链接、App ID/Secret 获取方式、Open ID 获取方式、权限开通清单
+- **README.md** 新增一键配置流程（推荐跑 setup.ps1）
+
+### ✨ 安装体验优化
+- **setup.ps1** 新增：自动检测 OpenClaw LLM 配置（不再填 localhost:8000）
+- **setup.ps1** 新增：自动注册 Cron 定时任务 + 回填 Job ID
+- **setup.ps1** 新增：交互式输入 App Secret / Open ID
+
+### 🐛 问题修复指引
+- 新增 403 妙记权限解决文档（开放平台 → 权限管理 → minutes:minute:readonly）
+- 新增常见问题 FAQ 章节
+
+---
+
 ## [3.5.0] - 2026-05-18
 
 ### ✨ 新增功能
-- **一键安装脚本** (`setup.sh`)：自动注册 Cron Job + 检查依赖
+- **一键安装脚本** (setup.sh)：自动注册 Cron Job + 检查依赖
 - **Cron Job 注册自动化**：逾期提醒（每天 09:00）通过 setup.sh 一键配置
 
 ### 📚 文档改进

@@ -9,6 +9,33 @@
 
 ---
 
+## 🚀 首次安装后必做（否则流程会断）
+
+### 1. 跑安装脚本
+```bash
+cd skills/feishu-meeting-workflow
+powershell -ExecutionPolicy Bypass -f setup.ps1
+```
+脚本会自动：检测 LLM 配置、创建 `config.json`、注册 Cron 定时任务
+
+### 2. 确认飞书应用权限已开通
+前往 **[飞书开放平台](https://open.feishu.cn/app)** → 你的应用 → **权限管理**：
+- ✅ `minutes:minute:readonly`（读妙记，缺了会 403）
+- ✅ `drive:drive`（读写云文档）
+- ✅ `bitable:app`（写多维表格）
+- ✅ `contact:contact`（读用户信息）
+未开通 → 点「开通」→ 提交企业管理员审核
+
+### 3. 首次运行验证
+给一个妙记链接，确认完整 14 步流程走通。
+
+### 4. 多次执行须知
+- **必须**先跑 `setup.ps1` 注册 Cron Job，否则只能手动触发
+- **LLM 配置**由 `setup.ps1` 自动检测，不要手动填 `localhost:8000`
+- **首次运行后**检查多维表格是否有记录写入
+
+---
+
 ## 🎯 核心目标
 
 **一句话**: 决策者（示例中称为"王爷"，实际使用时请替换为你的角色名称）创建日程 → 妙记自动生成 → **全自动**逐字稿 + 会议纪要 + 任务提取 + 多维表格归档 + 逾期追踪 + 会前关联。
