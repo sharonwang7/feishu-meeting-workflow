@@ -45,18 +45,53 @@ bash setup.sh
 
 ### 2. 配置环境变量
 
-```bash
-# 复制示例配置
-cp .env.example .env
+#### 2.1 获取飞书 App ID 和 App Secret
 
-# 编辑 .env 文件，填写必要配置
-# 必填项：
-# - FEISHU_APP_ID
-# - FEISHU_APP_SECRET
-# - DECISION_MAKER_OPEN_ID
-# - LLM_ENDPOINT
-# - LLM_MODEL
+① 打开 **[飞书开放平台](https://open.feishu.cn/app)**
+② 点击你的应用名称（如未创建，点击「创建企业自建应用」）
+③ 左侧菜单 → **「凭证与基础信息」**
+④ 复制 **App ID**（格式：`cli_xxxxxxxxxxxx`）和 **App Secret**（32位随机字符串）
+
+```bash
+cp .env.example .env
+# 编辑 .env 文件，填写下方 4 个必填项
 ```
+
+#### 2.2 获取你的 Open ID
+
+飞书桌面端 → 点击左下角自己的头像 → 「复制 Open ID」（格式：`ou_xxxxxxxxxx`）
+
+#### 2.3 开通应用权限（重要）
+
+① 开放平台左侧菜单 → **「权限管理」**
+② 搜索并开通以下权限（需要企业管理员审核）：
+
+| 权限 | 用途 |
+|------|------|
+| `minutes:minute:readonly` | 读取妙记文字稿 |
+| `drive:drive` | 创建/读取云文档 |
+| `contact:contact.xxx` | 读取用户信息 |
+| `bitable:app` | 读写多维表格 |
+
+> ⚠️ **如果没开权限**，调用妙记会返回 `HTTP 403`。开通后提交审核即可。
+
+#### 2.4 一键配置（推荐）
+
+运行安装脚本，会自动检测 LLM 配置、注册定时任务：
+
+```powershell
+powershell -ExecutionPolicy Bypass -f setup.ps1
+```
+
+如果不想交互，也可以手动编辑 `.env`：
+
+```bash
+# 必填项：
+# - FEISHU_APP_ID      → 开放平台「凭证与基础信息」
+# - FEISHU_APP_SECRET  → 同上
+# - DECISION_MAKER_OPEN_ID → 飞书头像「复制 Open ID」
+# - LLM_ENDPOINT       → 通常自动检测，填 localhost:8000 会失效
+# - LLM_MODEL          → 同上
 
 ### 3. 运行测试
 
