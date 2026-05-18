@@ -1,6 +1,6 @@
-# 飞书通用会议总结 Skill (Feishu Meeting Summary V3.3)
+# 飞书通用会议总结 Skill (Feishu Meeting Summary V3.5)
 
-**版本**: v3.4（架构重构 + 模块化 + 开源安全 + 通用配置）  
+**版本**: v3.5（一键安装脚本 + Cron Job 自动注册）  
 **设计框架**: 《通用会议总结 Skill 完整设计框架 V3.0》  
 **License**: MIT
 
@@ -27,6 +27,21 @@
 cd skills/feishu-meeting-workflow
 npm install
 ```
+
+### 1.5 一键注册定时任务（推荐）
+
+```bash
+bash setup.sh
+```
+
+脚本会自动:
+- 检查 openclaw CLI、Node.js 等依赖
+- 提醒创建 `config.json` 配置文件
+- 注册以下 **Cron Job**：
+  - **逾期提醒**：每天 09:00（工作日），检查逾期任务 + 生成会前文档
+
+> ⚠️ **注意**: Cron Job 是 OpenClaw Gateway 级别的配置，`setup.sh` 只帮你注册一次。
+> 如果重装 OpenClaw 或迁移环境，需要重新运行 `bash setup.sh`。
 
 ### 2. 配置环境变量
 

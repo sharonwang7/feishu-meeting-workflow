@@ -499,6 +499,23 @@ async function recordTasksToBase(minuteToken, meetingTitle, meetingDate, p1Tasks
 
 ---
 
+## 🚀 快速安装
+
+运行一键安装脚本即可注册所有定时任务：
+
+```bash
+cd skills/feishu-meeting-workflow
+bash setup.sh
+```
+
+脚本会注册以下 Cron Job：
+- **逾期提醒**：每天 09:00（工作日）— 检查逾期任务 + 生成会前文档 E/F
+
+> ⚠️ Cron Job 是 OpenClaw Gateway 层面的调度配置，不在 Git 仓库中。
+> 重装系统或迁移后需重新运行 `bash setup.sh`。
+
+---
+
 ## 🔧 配置项
 
 ### 多维表格
