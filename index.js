@@ -303,6 +303,10 @@ async function processMinute(minute) {
       await recordTasksToBase(minute.token, minute.title, meetingDate, extracted.p1, CONFIG);
     }
     
+    // Step 8: 录入会议记录到归档表（含逐字稿链接和纪要整理链接两个独立字段）
+    const meetingDate = new Date().toISOString().split('T')[0];
+    await recordMeetingToBase(minute, docs, meetingDate, CONFIG);
+    
     console.log(`\n✅ 妙记处理完成：${minute.title}`);
   } catch (error) {
     console.error(`❌ 处理妙记失败：${error.message}`);
@@ -418,12 +422,73 @@ async function createDocuments(minute, extracted, config) {
     }
   }
   
+  // 综合纪要（合并文档）：包含 4 份文档的完整 Markdown 内容
+  const mergedContent = generateMergedDocument(minute, extracted, docs, date);
+  if (mergedContent) {
+    const title = `综合会议纪要 · ${minute.title} - ${date}`;
+    console.log(`   📝 创建综合纪要（合并文档）: ${title}`);
+    const docToken = await createFeishuDoc(title, mergedContent, config.folderToken);
+    if (docToken) {
+      docs.merged = { title, content: mergedContent, type: '综合会议纪要', token: docToken };
+      docTokens.push(docToken);
+      console.log(`   ✅ 综合纪要创建成功：${docToken}`);
+    }
+  }
+  
   // 文档 E & F: 历史关联与待办速查（下次会前 24h 发送，本次不创建）
   // 这里只保存缓存，下次会议前由 Heartbeat 检查并发送
   
   console.log(`\n✅ 共创建 ${docTokens.length} 份飞书文档`);
   
   return { docs, docTokens };
+}
+
+/**
+ * 生成综合会议纪要（合并文档）：包含 4 份文档的完整内容
+ */
+function generateMergedDocument(minute, extracted, docs, date) {
+  const title = minute.title || '无标题';
+  
+  let merged = `# 综合会议纪要 · ${title} - ${date}\n\n`;
+  
+  // 添加 P0 战略决策备忘完整内容
+  if (docs.p0 && docs.p0.content) {
+    merged += `## 📄 战略决策备忘\n\n${docs.p0.content}\n\n`;
+  }
+  
+  // 添加 P0.5 风险与问题台账完整内容
+  if (docs.p0_5 && docs.p0_5.content) {
+    merged += `## 📄 风险与问题台账\n\n${docs.p0_5.content}\n\n`;
+  }
+  
+  // 添加 P1 个人执行任务单完整内容（所有负责人版本）
+  const p1Keys = Object.keys(docs).filter(k => k.startsWith('p1_'));
+  if (p1Keys.length > 0) {
+    // 如果有多份 P1 文档，逐一拼入
+    for (const key of p1Keys) {
+      if (docs[key] && docs[key].content) {
+        const ownerLabel = docs[key].owner ? `（${docs[key].owner}）` : '';
+        merged += `## 📄 个人执行任务单${ownerLabel}\n\n${docs[key].content}\n\n`;
+      }
+    }
+  } else if (extracted.p1 && extracted.p1.length > 0) {
+    // 退一步：直接从 extracted 拼接
+    merged += `## 📄 个人执行任务单\n\n`;
+    for (const task of extracted.p1) {
+      merged += `### 任务：${task.content || '未命名任务'}\n\n`;
+      merged += `- **负责人**：${task.owner || '待确认'}\n`;
+      merged += `- **截止时间**：${task.deadline || '待确认'}\n`;
+      if (task.details) merged += `- **详情**：${task.details}\n`;
+      merged += `\n`;
+    }
+  }
+  
+  // 添加 P2/P3 信息分发快报完整内容
+  if (docs.p2 && docs.p2.content) {
+    merged += `## 📄 信息分发快报\n\n${docs.p2.content}\n\n`;
+  }
+  
+  return merged;
 }
 
 /**
@@ -516,6 +581,61 @@ async function recordTasksToBase(minuteToken, meetingTitle, meetingDate, p1Tasks
     } catch (err) {
       console.error(`❌ 创建任务记录异常：${err.message}`);
     }
+  }
+}
+
+/**
+ * 录入会议记录到归档表（含逐字稿链接和纪要整理链接两个独立字段）
+ * @param {object} minute - 妙记信息
+ * @param {object} docs - 创建的文档对象
+ * @param {string} meetingDate - 会议日期
+ * @param {object} config - 配置对象
+ */
+async function recordMeetingToBase(minute, docs, meetingDate, config) {
+  const baseToken = config.tables?.meeting_records_base_token || '';
+  const tableId = config.tables?.meeting_records_table_id || '';
+  
+  if (!baseToken || !tableId) {
+    console.warn('⚠️ 未配置会议记录归档表（meeting_records_base_token / meeting_records_table_id），请在 config.json 中设置');
+    return;
+  }
+  
+  // 构建逐字稿链接和纪要整理链接
+  // 从 docs 中找逐字稿文档和综合纪要文档的链接
+  const transcriptDoc = Object.values(docs).find(d => d.type === '逐字稿');
+  const summaryDoc = docs.merged || Object.values(docs).find(d => d.type === '综合会议纪要');
+  
+  const transcriptDocLink = transcriptDoc?.token ? `https://${process.env.FEISHU_HOST || 'jqx28l0j4lx'}.feishu.cn/docx/${transcriptDoc.token}` : '';
+  const summaryDocLink = summaryDoc?.token ? `https://${process.env.FEISHU_HOST || 'jqx28l0j4lx'}.feishu.cn/docx/${summaryDoc.token}` : '';
+  
+  const fields = {
+    '会议主题': minute.title || '无标题',
+    '会议日期': meetingDate,
+    '参会人': '', // 暂缺参会人信息
+    '逐字稿链接': transcriptDocLink,
+    '纪要整理链接': summaryDocLink
+  };
+  
+  console.log(`📊 录入会议记录到归档表...`);
+  console.log(`   逐字稿链接: ${transcriptDocLink || '无'}`);
+  console.log(`   纪要整理链接: ${summaryDocLink || '无'}`);
+  
+  const command = `lark-cli base record.create --base-token ${baseToken} --table-id ${tableId} --fields '${JSON.stringify(fields)}'`;
+  
+  try {
+    await new Promise((resolve, reject) => {
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.warn(`⚠️ 创建会议记录失败：${stderr || error.message}`);
+          resolve(false);
+          return;
+        }
+        console.log('✅ 会议记录创建成功');
+        resolve(true);
+      });
+    });
+  } catch (err) {
+    console.error(`❌ 创建会议记录异常：${err.message}`);
   }
 }
 

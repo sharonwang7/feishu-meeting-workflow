@@ -84,7 +84,15 @@ Step 14: 会前文档 E/F 发送（下次会前 24h）
 
 ---
 
-## ⚡ 快速开始（5 分钟）
+## ⚡ 快速开始（5 步安装）
+
+### 前置准备
+- ✅ OpenClaw 已运行
+- ✅ GitHub repo 已 clone
+- ✅ `npm install` 已完成
+- ✅ 已创建飞书应用（获得 App ID + App Secret）
+
+---
 
 ### 方式一：让 Agent 帮你安装（推荐）
 
@@ -93,62 +101,57 @@ Step 14: 会前文档 E/F 发送（下次会前 24h）
 > 请帮我安装 feishu-meeting-workflow 这个技能。
 > 项目地址：https://github.com/sharonwang7/feishu-meeting-workflow.git
 > 安装到：skills/feishu-meeting-workflow/ 目录
-> 需要你给我三步操作：
+> 需要你帮我完成以下步骤：
 > 1. 下载代码（Git 或 ZIP）
 > 2. npm install 装依赖
-> 3. 运行 setup.ps1 帮我完成配置
+> 3. 运行 setup.ps1 帮我完成 5 步配置
 > 过程中我提供 App Secret 即可，LLM 配置和 Cron 任务由系统自动检测。
 
-Agent 会引导你完成后续步骤，全程有指引，放心使用。
+Agent 会引导你完成全部 5 步配置，全程有指引，放心使用。
 
 ---
 
-### 方式二：Windows 用户手动安装
+### 方式二：手动安装（5 步交互流程）
 
-#### 第 1 步：安装依赖
-
-打开 **PowerShell**（开始菜单搜索 PowerShell），逐行执行：
-
-```powershell
-git clone https://github.com/sharonwang7/feishu-meeting-workflow.git
-cd feishu-meeting-workflow
-npm install
-```
-
-> **为什么要装依赖？**
-> 这个 Skill 用到了第三方库（如 lark SDK）来处理飞书 API 调用，`npm install` 负责下载这些库。
-> 如果已经装过，重新跑 `npm install` 是安全的——它只会补充缺失的包，不会破坏已有的。
-
-#### 第 2 步：一键配置
+#### Step 1: 运行安装脚本
+打开 **PowerShell**（开始菜单搜索 PowerShell），执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -f setup.ps1
 ```
 
-脚本会自动：
-- 检测 OpenClaw 系统的 LLM 配置（无需手动填写 endpoint 和 model）
-- 注册逾期提醒定时任务（每天 09:00 工作日）
-- 引导你填写 App Secret 和 Open ID（安装时准备中有说明）
+脚本启动后，会引导你完成以下 5 步。
 
-#### 第 3 步：测试运行
+#### Step 2: 阅读工作流介绍
+脚本会逐一介绍 4 个工作模块：
 
-```powershell
-node index.js
-```
+| 模块 | 名称 | 说明 |
+|:---:|:---|:---|
+| **A** | 分级纪要 + 综合归档 | 一份会议 → 4 份分级文档 + 完整内容合并的综合纪要 |
+| **B** | 任务管理 | P1 任务自动录入多维表格 + 到期前 N 天提醒 |
+| **C** | 会前历史关联 | 下次同类会前 24h 推送历史决策 + 检测重复/矛盾 |
+| **D** | 会议记录归档 | 逐字稿 + 综合纪要分别归档到多维表格 |
 
-正常输出：`ℹ️ 无新增妙记`（说明一切就绪，等待新妙记即可）
+回复 `继续` 或 `next` 进入下一步。
 
-#### 第 4 步：定时自动执行
+#### Step 3: 选择需要的模块
+脚本展示 4 个模块的简洁复述，输入编号（如 `1,2,4`）或 `all` 全选。
 
-脚本已自动注册 Cron 定时任务，每天 09:00 检查过期任务。
-你可以在 OpenClaw 中查看：
-```
-openclaw cron list
-```
+#### Step 4: 表格处理
+根据所选模块，展示需要的表格和字段。你有两个选择：
+- **[A] 已有表格发链接** → 脚本自动解析 token，检查并补全字段
+- **[B] 自动创建** → 调用飞书 API 一键生成多维表格 + 配齐全部字段
+
+#### Step 5: 自检完成
+脚本打印最终检查结果，并引导你：
+- **方式一**：等待日程自动触发
+- **方式二**：立即发一条测试妙记链接验证全流程
 
 ---
 
-### 方式三：macOS / Linux 用户手动安装
+> 💡 **配置说明**：参数配置（接收人、提醒天数等）不在安装时配置，而是在**每次处理妙记时**问用户，灵活适应每次会议的需求。
+
+### macOS / Linux 用户
 
 ```bash
 cd skills
@@ -158,52 +161,7 @@ npm install
 bash setup.sh
 ```
 
-获取 App ID/Secret/Open ID 见下方「安装时准备」。
-
----
-
-### 📋 安装时准备
-
-不管哪种安装方式，都需要准备好以下信息：
-
-#### ① App ID 和 App Secret
-打开 **[飞书开放平台](https://open.feishu.cn/app)** → 你的应用 → **「凭证与基础信息」**
-
-| 配置项 | 格式 | 说明 |
-|--------|------|------|
-| App ID | `cli_xxxxxxxxxxxx` | 飞书应用唯一标识 |
-| App Secret | 32位随机字符串 | 应用密钥（敏感，勿外传） |
-
-#### ② 你的 Open ID
-
-Open ID 是飞书系统里你账号的唯一标识，有以下两种查询方式：
-
-**方法一：通过 Agent 查询（推荐）**
-如果已授权飞书 CLI，在终端运行以下命令：
-```bash
-lark-cli auth status
-```
-输出结果中可以看到：
-- `userOpenId`（即 open_id，格式：`ou_xxxxxxxxxx`）
-- `userName`
-
-**方法二：通过飞书开放平台**
-1. 打开 [飞书开放平台](https://open.feishu.cn/)，用你的飞书账号登录
-2. 点击右上角头像 → **「账号设置」**
-3. 在「开发者信息」或「基本信息」中查看 **User ID（即 open_id）**
-
-#### ③ 开通应用权限
-
-开放平台 → 应用 → **「权限管理」**，搜索并开通以下权限：
-
-| 权限 | 用途 |
-|------|------|
-| `minutes:minute:readonly` | 读取妙记文字稿（不开会 403） |
-| `drive:drive` | 创建/读取云文档 |
-| `contact:contact.xxx` | 读取用户信息 |
-| `bitable:app` | 读写多维表格 |
-
-> 开通后需企业管理员审核，通过后才能使用。
+get/setup.sh 已完成同样的 5 步交互流程适配。
 
 ## 🔧 配置说明
 
