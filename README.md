@@ -1,6 +1,6 @@
 # 飞书通用会议总结 Skill (Feishu Meeting Summary V3.5)
 
-**版本**: v3.5（一键安装脚本 + Cron Job 自动注册）  
+**版本**: v3.6（一键安装脚本 + 三种安装方式引导）  
 **设计框架**: 《通用会议总结 Skill 完整设计框架 V3.0》  
 **License**: MIT
 
@@ -21,97 +21,103 @@
 
 ## ⚡ 快速开始（5 分钟）
 
-### 1. 安装依赖
+### 方式一：让 AI 助手帮你安装（推荐）
 
-```bash
-cd skills/feishu-meeting-workflow
-npm install
-```
+在飞书私聊你的 AI 助手，复制粘贴以下提示词：
 
-### 1.5 一键注册定时任务（推荐）
+> 请帮我安装 feishu-meeting-workflow 这个技能。
+> 项目地址：https://github.com/sharonwang7/feishu-meeting-workflow.git
+> 安装到：skills/feishu-meeting-workflow/ 目录
+> 需要你给我三步操作：
+> 1. 下载代码（Git 或 ZIP）
+> 2. npm install 装依赖
+> 3. 运行 setup.ps1 帮我完成配置
+> 过程中我提供 App Secret 即可，LLM 配置和 Cron 任务由系统自动检测。
 
-```bash
-bash setup.sh
-```
+AI 会引导你完成后续步骤，全程有指引，放心使用。
 
-脚本会自动:
-- 检查 openclaw CLI、Node.js 等依赖
-- 提醒创建 `config.json` 配置文件
-- 注册以下 **Cron Job**：
-  - **逾期提醒**：每天 09:00（工作日），检查逾期任务 + 生成会前文档
+---
 
-> ⚠️ **注意**: Cron Job 是 OpenClaw Gateway 级别的配置，`setup.sh` 只帮你注册一次。
-> 如果重装 OpenClaw 或迁移环境，需要重新运行 `bash setup.sh`。
+### 方式二：Windows 用户手动安装
 
-### 2. 配置环境变量
+#### 第 1 步：获取配置信息
 
-#### 2.1 获取飞书 App ID 和 App Secret
+先准备好以下 3 样东西（只需准备一次）：
 
-① 打开 **[飞书开放平台](https://open.feishu.cn/app)**
-② 点击你的应用名称（如未创建，点击「创建企业自建应用」）
-③ 左侧菜单 → **「凭证与基础信息」**
-④ 复制 **App ID**（格式：`cli_xxxxxxxxxxxx`）和 **App Secret**（32位随机字符串）
+**① App ID 和 App Secret**
+打开 **[飞书开放平台](https://open.feishu.cn/app)** → 你的应用 → **「凭证与基础信息」**
+- App ID 格式：`cli_xxxxxxxxxxxx`
+- App Secret 格式：32 位随机字符串
 
-```bash
-cp .env.example .env
-# 编辑 .env 文件，填写下方 4 个必填项
-```
+**② 你的 Open ID**
+飞书桌面端 → 左下角头像 → **「复制 Open ID」**（格式：`ou_xxxxxxxxxx`）
 
-#### 2.2 获取你的 Open ID
-
-飞书桌面端 → 点击左下角自己的头像 → 「复制 Open ID」（格式：`ou_xxxxxxxxxx`）
-
-#### 2.3 开通应用权限（重要）
-
-① 开放平台左侧菜单 → **「权限管理」**
-② 搜索并开通以下权限（需要企业管理员审核）：
+**③ 开通应用权限**
+开放平台 → 应用 → **「权限管理」**，搜索并开通：
 
 | 权限 | 用途 |
 |------|------|
-| `minutes:minute:readonly` | 读取妙记文字稿 |
+| `minutes:minute:readonly` | 读取妙记文字稿（不开会 403） |
 | `drive:drive` | 创建/读取云文档 |
 | `contact:contact.xxx` | 读取用户信息 |
 | `bitable:app` | 读写多维表格 |
 
-> ⚠️ **如果没开权限**，调用妙记会返回 `HTTP 403`。开通后提交审核即可。
+> 开通后需企业管理员审核，通过后才能用。
 
-#### 2.4 一键配置（推荐）
+#### 第 2 步：安装依赖
 
-运行安装脚本，会自动检测 LLM 配置、注册定时任务：
+打开 **PowerShell**（开始菜单搜索 PowerShell），逐行执行：
+
+```powershell
+git clone https://github.com/sharonwang7/feishu-meeting-workflow.git
+cd feishu-meeting-workflow
+npm install
+```
+
+> **为什么要装依赖？**
+> 这个 Skill 用到了第三方库（如 lark SDK）来处理飞书 API 调用，`npm install` 负责下载这些库。
+> 如果已经装过，重新跑 `npm install` 是安全的——它只会补充缺失的包，不会破坏已有的。
+
+#### 第 3 步：一键配置
 
 ```powershell
 powershell -ExecutionPolicy Bypass -f setup.ps1
 ```
 
-如果不想交互，也可以手动编辑 `.env`：
+脚本会自动：
+- 检测 OpenClaw 系统的 LLM 配置（无需手动填写 endpoint 和 model）
+- 注册逾期提醒定时任务（每天 09:00 工作日）
+- 引导你填写 App Secret 和 Open ID（只需按提示输入）
 
-```bash
-# 必填项：
-# - FEISHU_APP_ID      → 开放平台「凭证与基础信息」
-# - FEISHU_APP_SECRET  → 同上
-# - DECISION_MAKER_OPEN_ID → 飞书头像「复制 Open ID」
-# - LLM_ENDPOINT       → 通常自动检测，填 localhost:8000 会失效
-# - LLM_MODEL          → 同上
+#### 第 4 步：测试运行
 
-### 3. 运行测试
-
-```bash
-# 使用测试妙记验证完整流程
-npm test
-```
-
-### 4. 触发执行
-
-**方式一：Heartbeat 自动触发**（推荐）
-- Heartbeat 检查新增妙记（12:00/17:00/22:00）
-- 自动处理过去 5 小时内的妙记
-
-**方式二：手动触发**
-```bash
+```powershell
 node index.js
 ```
 
+正常输出：`ℹ️ 无新增妙记`（说明一切就绪，等待新妙记即可）
+
+#### 第 5 步：定时自动执行
+
+脚本已自动注册 Cron 定时任务，每天 09:00 检查过期任务。
+你可以在 OpenClaw 中查看：
+```
+openclaw cron list
+```
+
 ---
+
+### 方式三：macOS / Linux 用户手动安装
+
+```bash
+cd skills
+git clone https://github.com/sharonwang7/feishu-meeting-workflow.git
+cd feishu-meeting-workflow
+npm install
+bash setup.sh
+```
+
+配置信息获取方式与 Windows 相同（见方式二第 1 步）。
 
 ## 📄 核心功能
 
@@ -159,10 +165,11 @@ node index.js
 | `FEISHU_APP_ID` | 飞书应用 App ID | 飞书开放平台 → 企业自建应用 → 凭证管理 |
 | `FEISHU_APP_SECRET` | 飞书应用 App Secret | 同上 |
 | `DECISION_MAKER_OPEN_ID` | 决策者 open_id（发送预览、接收战略决策） | 飞书 → 点击用户头像 → 复制 open_id |
-| `LLM_ENDPOINT` | **LLM API 地址**（从本地配置文件读取） | 本地部署：`localhost:8000` 或远程 API |
-| `LLM_MODEL` | **LLM 模型名称**（从本地配置文件读取） | 根据实际部署的模型填写 |
+| `LLM_ENDPOINT` | **LLM API 地址**（setup.ps1 自动检测） | 通常从 OpenClaw 配置读取，无需手动填 |
+| `LLM_MODEL` | **LLM 模型名称**（setup.ps1 自动检测） | 通常从 OpenClaw 配置读取，无需手动填 |
 
-> 💡 **LLM 配置说明**：`LLM_ENDPOINT` 和 `LLM_MODEL` 从 `config.json` 或 `.env` 读取，**代码中无默认值**。请根据你的本地 LLM 服务或远程 API 填写。
+> 💡 **LLM 配置说明**：LLM 信息由 `setup.ps1` 自动从 OpenClaw 系统配置读取，一般不需要手动填写。
+> 如需要手动指定，可编辑 `config.json` 或 `.env`。
 
 ### 可选配置项
 
@@ -449,4 +456,4 @@ MIT License - 详见 [LICENSE](./LICENSE) 文件
 
 ---
 
-*最后更新：2026-05-15 | 版本：v3.4 | 作者：[YOUR_NAME]*
+*最后更新：2026-05-19 | 版本：v3.6 | 作者：[YOUR_NAME]*
