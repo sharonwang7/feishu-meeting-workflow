@@ -160,7 +160,13 @@ try {
 }
 
 if ([string]::IsNullOrEmpty($USER_OPEN_ID)) {
-    Write-Host "   [WARN] 自动检测失败"
+    Write-Host "   [WARN] 未检测到 lark-cli，自动检测失败"
+    Write-Host "   "
+    Write-Host "   手动获取 Open ID 的方法："
+    Write-Host "   1. 打开 https://open.feishu.cn 用你的飞书账号登录"
+    Write-Host "   2. 点击右上角头像 → 账号设置"
+    Write-Host "   3. 在「开发者信息」中查看 User ID（格式 ou_xxx）"
+    Write-Host "   "
     $USER_OPEN_ID = Read-Host "   请输入你的飞书 Open ID (ou_xxx)"
     if ([string]::IsNullOrEmpty($USER_OPEN_ID)) {
         $USER_OPEN_ID = "YOUR_OPEN_ID"
