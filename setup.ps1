@@ -89,10 +89,25 @@ if (Test-Path $existingConfigPath) {
     } catch {}
 }
 
+# 尝试从 OpenClaw 配置自动读取 App Secret
+$ocSecret = ""
+if ($configPath -and (Test-Path $configPath)) {
+    try {
+        $ocConfig = Get-Content $configPath -Encoding UTF8 | ConvertFrom-Json
+        if ($ocConfig.channels.feishu.appSecret -and $ocConfig.channels.feishu.appSecret -ne "") {
+            $ocSecret = $ocConfig.channels.feishu.appSecret
+        }
+    } catch {}
+}
+
 if ($existingSecret -ne "") {
     Write-Host "   检测到已有配置，使用已保存的 App Secret"
     $APP_SECRET = $existingSecret
     Write-Host "   [OK] App Secret 已复用"
+} elseif ($ocSecret -ne "") {
+    Write-Host "   从 OpenClaw 飞书配置自动读取 App Secret"
+    $APP_SECRET = $ocSecret
+    Write-Host "   [OK] App Secret 已自动获取"
 } else {
     Write-Host "   前往飞书开放平台复制: https://open.feishu.cn/app"
     Write-Host ""
