@@ -40,31 +40,7 @@ AI 会引导你完成后续步骤，全程有指引，放心使用。
 
 ### 方式二：Windows 用户手动安装
 
-#### 第 1 步：获取配置信息
-
-先准备好以下 3 样东西（只需准备一次）：
-
-**① App ID 和 App Secret**
-打开 **[飞书开放平台](https://open.feishu.cn/app)** → 你的应用 → **「凭证与基础信息」**
-- App ID 格式：`cli_xxxxxxxxxxxx`
-- App Secret 格式：32 位随机字符串
-
-**② 你的 Open ID**
-飞书桌面端 → 左下角头像 → **「复制 Open ID」**（格式：`ou_xxxxxxxxxx`）
-
-**③ 开通应用权限**
-开放平台 → 应用 → **「权限管理」**，搜索并开通：
-
-| 权限 | 用途 |
-|------|------|
-| `minutes:minute:readonly` | 读取妙记文字稿（不开会 403） |
-| `drive:drive` | 创建/读取云文档 |
-| `contact:contact.xxx` | 读取用户信息 |
-| `bitable:app` | 读写多维表格 |
-
-> 开通后需企业管理员审核，通过后才能用。
-
-#### 第 2 步：安装依赖
+#### 第 1 步：安装依赖
 
 打开 **PowerShell**（开始菜单搜索 PowerShell），逐行执行：
 
@@ -78,7 +54,7 @@ npm install
 > 这个 Skill 用到了第三方库（如 lark SDK）来处理飞书 API 调用，`npm install` 负责下载这些库。
 > 如果已经装过，重新跑 `npm install` 是安全的——它只会补充缺失的包，不会破坏已有的。
 
-#### 第 3 步：一键配置
+#### 第 2 步：一键配置
 
 ```powershell
 powershell -ExecutionPolicy Bypass -f setup.ps1
@@ -87,9 +63,9 @@ powershell -ExecutionPolicy Bypass -f setup.ps1
 脚本会自动：
 - 检测 OpenClaw 系统的 LLM 配置（无需手动填写 endpoint 和 model）
 - 注册逾期提醒定时任务（每天 09:00 工作日）
-- 引导你填写 App Secret 和 Open ID（只需按提示输入）
+- 引导你填写 App Secret 和 Open ID（安装时准备中有说明）
 
-#### 第 4 步：测试运行
+#### 第 3 步：测试运行
 
 ```powershell
 node index.js
@@ -97,7 +73,7 @@ node index.js
 
 正常输出：`ℹ️ 无新增妙记`（说明一切就绪，等待新妙记即可）
 
-#### 第 5 步：定时自动执行
+#### 第 4 步：定时自动执行
 
 脚本已自动注册 Cron 定时任务，每天 09:00 检查过期任务。
 你可以在 OpenClaw 中查看：
@@ -117,7 +93,52 @@ npm install
 bash setup.sh
 ```
 
-配置信息获取方式与 Windows 相同（见方式二第 1 步）。
+获取 App ID/Secret/Open ID 见下方「安装时准备」。
+
+---
+
+### 📋 安装时准备
+
+不管哪种安装方式，都需要准备好以下信息：
+
+#### ① App ID 和 App Secret
+打开 **[飞书开放平台](https://open.feishu.cn/app)** → 你的应用 → **「凭证与基础信息」**
+
+| 配置项 | 格式 | 说明 |
+|--------|------|------|
+| App ID | `cli_xxxxxxxxxxxx` | 飞书应用唯一标识 |
+| App Secret | 32位随机字符串 | 应用密钥（敏感，勿外传） |
+
+#### ② 你的 Open ID
+
+Open ID 是飞书系统里你账号的唯一标识，有以下两种查询方式：
+
+**方法一：通过 Agent 查询（推荐）**
+如果已授权飞书 CLI，在终端运行以下命令：
+```bash
+lark-cli auth status
+```
+输出结果中可以看到：
+- `userOpenId`（即 open_id，格式：`ou_xxxxxxxxxx`）
+- `userName`
+
+**方法二：通过飞书开放平台**
+1. 打开 [飞书开放平台](https://open.feishu.cn/)，用你的飞书账号登录
+2. 点击右上角头像 → **「账号设置」**
+3. 在「开发者信息」或「基本信息」中查看 **User ID（即 open_id）**
+
+#### ③ 开通应用权限
+
+开放平台 → 应用 → **「权限管理」**，搜索并开通以下权限：
+
+| 权限 | 用途 |
+|------|------|
+| `minutes:minute:readonly` | 读取妙记文字稿（不开会 403） |
+| `drive:drive` | 创建/读取云文档 |
+| `contact:contact.xxx` | 读取用户信息 |
+| `bitable:app` | 读写多维表格 |
+
+> 开通后需企业管理员审核，通过后才能使用。
 
 ## 📄 核心功能
 
