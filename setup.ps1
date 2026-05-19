@@ -76,20 +76,39 @@ Write-Host ""
 
 # [2/5] 飞书身份配置
 Write-Host "[2/5] 配置飞书身份..."
-Write-Host "   前往飞书开放平台复制: https://open.feishu.cn/app"
-Write-Host ""
 
-if ($feishuAppId -ne "") {
-    Write-Host "   自动检测到 App ID: $feishuAppId"
-    $confirmAppId = Read-Host "   是否使用此 App ID？(Y/n)"
-    if ($confirmAppId -eq "n" -or $confirmAppId -eq "N") {
-        $feishuAppId = Read-Host "   请重新输入 App ID"
-    }
-} else {
-    $feishuAppId = Read-Host "   请输入 App ID"
+# 检测已有配置
+$existingConfigPath = Join-Path $PSScriptRoot "config.json"
+$existingSecret = ""
+if (Test-Path $existingConfigPath) {
+    try {
+        $existingConf = Get-Content $existingConfigPath -Encoding UTF8 | ConvertFrom-Json
+        if ($existingConf.feishu.app_secret -and $existingConf.feishu.app_secret -ne "") {
+            $existingSecret = $existingConf.feishu.app_secret
+        }
+    } catch {}
 }
 
-$APP_SECRET = Read-Host "   请输入 App Secret (必填)"
+if ($existingSecret -ne "") {
+    Write-Host "   检测到已有配置，使用已保存的 App Secret"
+    $APP_SECRET = $existingSecret
+    Write-Host "   [OK] App Secret 已复用"
+} else {
+    Write-Host "   前往飞书开放平台复制: https://open.feishu.cn/app"
+    Write-Host ""
+    
+    if ($feishuAppId -ne "") {
+        Write-Host "   自动检测到 App ID: $feishuAppId"
+        $confirmAppId = Read-Host "   是否使用此 App ID？(Y/n)"
+        if ($confirmAppId -eq "n" -or $confirmAppId -eq "N") {
+            $feishuAppId = Read-Host "   请重新输入 App ID"
+        }
+    } else {
+        $feishuAppId = Read-Host "   请输入 App ID"
+    }
+    
+    $APP_SECRET = Read-Host "   请输入 App Secret (必填)"
+}
 
 Write-Host ""
 
@@ -164,26 +183,50 @@ $config.llm.model = $llmModelVal
 $config.llm.max_tokens = 4096
 $config.llm.temperature = 0.1
 
+# 读取已有配置（保留已有值，避免重跑丢失）
+$existingConfig = $null
+if (Test-Path $existingConfigPath) {
+    try { $existingConfig = Get-Content $existingConfigPath -Encoding UTF8 | ConvertFrom-Json } catch {}
+}
+
+function Get-ExistingVal($obj, $path) {
+    $parts = $path -split '\.'
+    $current = $obj
+    foreach ($p in $parts) { if ($current -and $current.$p) { $current = $current.$p } else { return $null } }
+    return $current
+}
+
 $config.tables = @{}
-$config.tables.task_management_base_token = ""
-$config.tables.task_management_table_id = ""
-$config.tables.meeting_records_base_token = ""
-$config.tables.meeting_records_table_id = ""
+$config.tables.task_management_base_token = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'tables.task_management_base_token') } else { "" })
+$config.tables.task_management_base_token = if ($config.tables.task_management_base_token) { $config.tables.task_management_base_token } else { "" }
+$config.tables.task_management_table_id = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'tables.task_management_table_id') } else { "" })
+$config.tables.task_management_table_id = if ($config.tables.task_management_table_id) { $config.tables.task_management_table_id } else { "" }
+$config.tables.meeting_records_base_token = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'tables.meeting_records_base_token') } else { "" })
+$config.tables.meeting_records_base_token = if ($config.tables.meeting_records_base_token) { $config.tables.meeting_records_base_token } else { "" }
+$config.tables.meeting_records_table_id = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'tables.meeting_records_table_id') } else { "" })
+$config.tables.meeting_records_table_id = if ($config.tables.meeting_records_table_id) { $config.tables.meeting_records_table_id } else { "" }
 
 $config.cron = @{}
-$config.cron.overdue_reminder_job_id = ""
+$config.cron.overdue_reminder_job_id = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'cron.overdue_reminder_job_id') } else { "" })
+$config.cron.overdue_reminder_job_id = if ($config.cron.overdue_reminder_job_id) { $config.cron.overdue_reminder_job_id } else { "" }
 
 $config.minutes = @{}
-$config.minutes.check_window_minutes = 60
+$config.minutes.check_window_minutes = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'minutes.check_window_minutes') } else { 60 })
+$config.minutes.check_window_minutes = if ($config.minutes.check_window_minutes) { $config.minutes.check_window_minutes } else { 60 }
 
 $config.automation = @{}
-$config.automation.reminder_days_before = 3
+$config.automation.reminder_days_before = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'automation.reminder_days_before') } else { 3 })
+$config.automation.reminder_days_before = if ($config.automation.reminder_days_before) { $config.automation.reminder_days_before } else { 3 }
 
 $config.paths = @{}
-$config.paths.processed_file = "../../memory/processed-meetings-summary.json"
-$config.paths.cache_file = "../../memory/meeting-summary-cache.json"
-$config.paths.output_dir = "./minutes"
-$config.paths.pre_meeting_docs_dir = "../../memory/pre-meeting-docs"
+$config.paths.processed_file = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'paths.processed_file') } else { "../../memory/processed-meetings-summary.json" })
+$config.paths.processed_file = if ($config.paths.processed_file) { $config.paths.processed_file } else { "../../memory/processed-meetings-summary.json" }
+$config.paths.cache_file = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'paths.cache_file') } else { "../../memory/meeting-summary-cache.json" })
+$config.paths.cache_file = if ($config.paths.cache_file) { $config.paths.cache_file } else { "../../memory/meeting-summary-cache.json" }
+$config.paths.output_dir = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'paths.output_dir') } else { "./minutes" })
+$config.paths.output_dir = if ($config.paths.output_dir) { $config.paths.output_dir } else { "./minutes" }
+$config.paths.pre_meeting_docs_dir = $(if ($existingConfig) { (Get-ExistingVal $existingConfig 'paths.pre_meeting_docs_dir') } else { "../../memory/pre-meeting-docs" })
+$config.paths.pre_meeting_docs_dir = if ($config.paths.pre_meeting_docs_dir) { $config.paths.pre_meeting_docs_dir } else { "../../memory/pre-meeting-docs" }
 
 $configJsonPath = Join-Path $PSScriptRoot "config.json"
 $config | ConvertTo-Json -Depth 10 | Set-Content $configJsonPath -Encoding UTF8
