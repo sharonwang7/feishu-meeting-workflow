@@ -215,48 +215,31 @@ lark-cli auth status
 2. ✅ **灵活**：不同用户可使用各自的飞书应用、LLM 服务
 3. ✅ **易部署**：复制示例配置文件，填写自己的值即可
 
-### 必填配置项
+### 基础配置（App ID / Secret / Open ID）
 
-| 配置项 | 说明 | 获取方式 |
-|--------|------|---------|
-| `FEISHU_APP_ID` | 飞书应用 App ID | 飞书开放平台 → 企业自建应用 → 凭证管理 |
-| `FEISHU_APP_SECRET` | 飞书应用 App Secret | 同上 |
-| `DECISION_MAKER_OPEN_ID` | 决策者 open_id（发送预览、接收战略决策） | 飞书 → 点击用户头像 → 复制 open_id |
-| `LLM_ENDPOINT` | **LLM API 地址**（setup.ps1 自动检测） | 通常从 OpenClaw 配置读取，无需手动填 |
-| `LLM_MODEL` | **LLM 模型名称**（setup.ps1 自动检测） | 通常从 OpenClaw 配置读取，无需手动填 |
+详见快速开始 → **[安装时准备](#📋-安装时准备)**。这部分信息是**首次安装时**一次性准备的。
 
-> 💡 **LLM 配置说明**：LLM 信息由 `setup.ps1` 自动从 OpenClaw 系统配置读取，一般不需要手动填写。
-> 如需要手动指定，可编辑 `config.json` 或 `.env`。
+### LLM 配置（自动检测）
+
+| 配置项 | 说明 |
+|--------|------|
+| `LLM_ENDPOINT` | 由 `setup.ps1` 从系统配置自动读取，无需手动填写 |
+| `LLM_MODEL` | 同上 |
+
+> 如需手动指定，可编辑 `config.json` 中的 `llm.endpoint` 和 `llm.model`。
 
 ### 可选配置项
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `ORGANIZER_OPEN_ID` | 同 DECISION_MAKER | 日程组织者 open_id（用于权限过滤） |
-| `MEETING_TASK_BASE_TOKEN` | - | 任务管理表 base token（**不要硬编码**） |
+| `MEETING_TASK_BASE_TOKEN` | - | 任务管理表 base token |
 | `MEETING_TASK_TABLE_ID` | - | 任务管理表 table ID |
 | `CHECK_WINDOW_MINUTES` | 60 | 妙记检查窗口（分钟） |
 | `REMINDER_DAYS_BEFORE` | 3 | 任务到期前提醒天数 |
 
-> ⚠️ **重要**: `MEETING_TASK_BASE_TOKEN` 等配置项应从配置文件或环境变量读取，不要在代码中硬编码。
+### 配置文件参考
 
-### 配置文件优先级
-
-```
-环境变量 > config.yaml / config.json > 无默认值（必须填写）
-```
-
-### 配置步骤
-
-1. **复制示例配置文件**
-```bash
-cp config.json config.json  # 或直接编辑 config.json
-cp .env.example .env        # 如使用环境变量方式
-```
-
-2. **编辑配置文件**
-
-**方式一：config.json（推荐）**
 ```json
 {
   "feishu": {
@@ -264,32 +247,17 @@ cp .env.example .env        # 如使用环境变量方式
     "app_secret": "xxx"
   },
   "roles": {
-    "decision_maker_open_id": "ou_xxx",
-    "organizer_open_id": "ou_xxx"
+    "decision_maker_open_id": "ou_xxx"
   },
   "llm": {
-    "endpoint": "localhost:8000",  // 你的 LLM 服务地址
-    "model": "qwen3.5-397b"        // 你的模型名称
+    "endpoint": "",              // setup.ps1 自动填写
+    "model": ""                   // setup.ps1 自动填写
   },
   "tables": {
-    "task_management_base_token": "xxx",
-    "task_management_table_id": "tblxxx"
+    "task_management_base_token": "",
+    "task_management_table_id": ""
   }
 }
-```
-
-**方式二：.env 环境变量**
-```bash
-FEISHU_APP_ID=cli_xxx
-FEISHU_APP_SECRET=xxx
-DECISION_MAKER_OPEN_ID=ou_xxx
-LLM_ENDPOINT=localhost:8000
-LLM_MODEL=qwen3.5-397b
-```
-
-3. **验证配置**
-```bash
-node -e "const config = require('./lib/config-loader').loadConfig(); console.log(JSON.stringify(config, null, 2))"
 ```
 
 ---
